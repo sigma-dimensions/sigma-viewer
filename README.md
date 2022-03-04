@@ -1,5 +1,8 @@
 # Sigma Dimensions Viewer
 
+Live version:
+
+http://viewer.sigmadimensions.com/
 
 ### How to run locally:
 
