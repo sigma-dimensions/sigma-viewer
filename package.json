@@ -1,0 +1,24 @@
+{
+  "name": "lcdlv",
+  "version": "1.0.0",
+  "description": "-",
+  "main": "app.js",
+  "scripts": {
+    "build": "rollup -c ./src/rollup.config.js",
+    "watch": "rollup -w -c ./src/rollup.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.2",
+    "rollup": "^2.45.2"
+  },
+  "dependencies": {
+    "jsgantt-improved": "^2.8.4",
+    "three": "^0.135.0",
+    "three-mesh-bvh": "^0.5.5",
+    "web-ifc-three": "^0.0.103",
+    "web-ifc-viewer": "^1.0.137"
+  }
+}
