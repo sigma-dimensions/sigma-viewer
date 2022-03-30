@@ -1,0 +1,38 @@
+
+@import "slider-dates-2.css";
+@import "hierarchy-tree-2.css";
+@import "menus-2.css";
+@import "tables-2.css";
+@import "cursors-2.css";
+@import "floating-window-2.css";
+@import "checkbox-2.css";
+@import "container-2.css";
+@import "jsgantt-2.css";
+
+.gtaskcellwkend,
+.gtaskcellcurrent,
+.gminorheadingwkend {
+  background-color: #e1e1e1;
+}
+
+.gitemhighlight td {
+  background-color: #ffdaaa;
+}
+
+.gtaskblue {
+  background: #4281A4;
+}
+
+.gtaskred {
+  background: #C1666B;
+}
+
+.gtaskgreen {
+  background: #48A9A6;
+}
+
+.gtaskyellow {
+  background: #D4B483;
+}
+
+

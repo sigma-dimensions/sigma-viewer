@@ -1,0 +1,136 @@
+.sequence_tools {
+    background-color: #a0993227;
+    width: 100%;
+    left:0;
+    bottom:0;
+    color: rgb(0, 0, 0);
+    max-height: inherit;
+    max-width: inherit;
+    position: absolute;
+  }
+
+.threeD_tools {
+    background-color:rgba(213, 213, 213, 0.329);
+    width: 40%;
+    height:10%;
+    bottom:10%;
+    color: rgb(0, 0, 0);
+    max-height: inherit;
+    max-width: inherit;
+    position: absolute;
+    right: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 1.5rem;
+}
+
+  .costing_tools {
+    background-color: #a0993227;
+    width: 50%;
+    right:0;
+    top:0;
+    color: rgb(0, 0, 0);
+    max-height: inherit;
+    max-width: inherit;
+    position: absolute;
+  }
+  
+  .date_tools {
+    position: absolute;
+    background-color: #a0993227;
+    left:0;
+    right: 0;
+    top:0;
+    color: rgb(0, 0, 0);
+    color: #426696;
+    font-weight: 600;
+    font-size: 2rem;
+  }
+    
+  
+  #costingMenu{
+    width: 15rem;
+    right: -140px;
+    position:absolute;
+    z-index: 100;
+    text-align: left;
+    font-size: 0.8rem;
+    top: 77%; /* change this value to place the menu higher or lower */
+    display:flex;
+  }
+  
+  
+  
+  #sequenceMenu{
+    width: 15rem;
+    right: -140px;
+    position:absolute;
+    z-index: 100;
+    text-align: left;
+    font-size: 0.8rem;
+    top: 7%; /* change this value to place the menu higher or lower */
+    display:flex;
+
+  }
+
+
+  
+  #productMenu{
+    width: 15rem;
+    font-size: 12px;
+    line-height: 17px;
+    left: 0;
+    top: 10%;
+    position:relative;
+    z-index: 100;
+
+  }
+
+  #deco{
+    max-width: inherit;
+    max-height:inherit;
+    float: left;
+            box-shadow:0px 0px 5px rgb(72, 70, 24);
+       -moz-box-shadow:0px 0px 5px rgb(72, 70, 24);
+    -webkit-box-shadow:0px 0px 5px rgb(72, 70, 24);
+    overflow: hidden;
+    resize:vertical;
+  }
+  
+  .showIT, .hideIT{
+    /* we specify the transition length for hiding and showing */
+            transition: margin-right .4s ease-in;
+    -webkit-transition: margin-right .4s ease-in;
+  }
+  
+  .hideIT{
+    margin-right:-3.3rem;
+  }
+  
+  .showIT{
+    margin-right:10rem;
+  }
+
+  .bt{
+    width: 77px;
+    height: 40px;
+    margin: -1px;
+    text-align:center;
+    border:1px solid #858fa6;
+    font: bold 13px Helvetica,Arial,sans-serif;
+    text-shadow:0px 0px 5px rgba(0, 0, 0, 0.75);
+    background:#014464;
+         background-image: -o-linear-gradient(left, #1F82AF, #002F44);
+        background-image: -ms-linear-gradient(left, #1F82AF, #002F44);
+       background-image: -moz-linear-gradient(left, #1F82AF, #002F44);
+    background-image: -webkit-linear-gradient(left, #1F82AF, #002F44);
+    background-image: -webkit-gradient(linear, left top, right top, from(#1F82AF), to(#002F44));
+  }
+  
+  .bt:hover{
+    transition: background .3s linear;
+    background: #32A3D3;
+         -o-transition: background .3s linear;
+       -moz-transition: background .3s linear;
+    -webkit-transition: background .3s linear;
+  }
+  

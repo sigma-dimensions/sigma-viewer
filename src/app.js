@@ -1,92 +1,168 @@
-import "./utils/jsgantt/jsgantt.js"
+import { 
+	Mesh, 
+	MeshBasicMaterial, 
+	LineBasicMaterial, 
+	Color, 
+	EdgesGeometry, 
+	MeshLambertMaterial,
+} from 'three';
 import { IfcViewerAPI } from 'web-ifc-viewer'
-import { Mesh, MeshBasicMaterial, LineBasicMaterial, Color, EdgesGeometry } from 'three';
-import {
-  IFCSPACE,
-  IFCOPENINGELEMENT,
-  IFCWALLSTANDARDCASE,
-  IFCWALL,
-  IFCSTAIR,
-  IFCCOLUMN,
-  IFCSLAB,
-  IFCROOF,
-  IFCDOOR,
-  IFCWINDOW,
-  IFCFURNISHINGELEMENT,
-  IFCMEMBER,
-  IFCPLATE
-  // IFCFOOTING,
-  // IFCFURNISHINGELEMENT
-  // IFCSTAIRFLIGHT,
-  // IFCRAILING
-} from 'web-ifc'
-
-import {IFC4D} from './sequence/Ifc4D.js'
+import {IFCAnimationDataFrame} from './components/IFC2AnimationDataFrame'
+import {JSGanttTaskJson} from "./sequence/JSGanttTaskJson";
+import "./utils/jsgantt/jsgantt.js"
+import {FloatingPanel} from './components/FloatingPanel'
+import {SlidingMenus} from './components/SlidingMenus'
+import {AnimationControls} from './components/AnimationControls'
+import {ProjectTree} from './components/ProjectTree'
 
 let model
-let fills = []
-let ifc4D
-var jsGanttJson
 let isUserFileLoaded = false;
 let isExampleFileLoaded = false;
+var jsGanttJson
+let animationSequenceFrame
+let animationControls
+let tree
+
+let ganttWrapperDiv = document.getElementById("floatingDiv")
+ganttWrapperDiv.style.display = "none"
 
 let container = document.getElementById('viewer-container')
 let viewer = new IfcViewerAPI({ container })
+const ifc = viewer.IFC.loader.ifcManager;
+
 viewer.IFC.setWasmPath("../static/wasm/")
 
-const camera = viewer.IFC.context.ifcCamera;
+//CAMERA - FOR TOGGLING FPS - TO DO
+//const camera = viewer.IFC.context.ifcCamera;
 
+//WEBWORKERS - to do
 //viewer.IFC.loader.ifcManager.useWebWorkers(true, '../static/web-workers/IFCWorker.js')
 
-/* Styling Model */
-const lineMaterial = new LineBasicMaterial({ color: 0x555555 })
-const baseMaterial = new MeshBasicMaterial({ color: 0xffffff, side: 2 })
-viewer.shadowDropper.darkness = 1.5
-viewer.grid.setGrid()
-viewer.axes.setAxes()
-async function createFill(modelID) {
-  const wallsStandard = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCWALLSTANDARDCASE, false);
-  const walls = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCWALL, false);
-  const stairs = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCSTAIR, false);
-  const columns = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCCOLUMN, false);
-  const roofs = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCROOF, false);
-  const slabs = await viewer.IFC.loader.ifcManager.getAllItemsOfType(modelID, IFCSLAB, false);
-  const ids = [...walls, ...wallsStandard, ...columns, ...stairs, ...slabs, ...roofs];
-  const material = new MeshBasicMaterial({ color: 0x555555 });
-  material.polygonOffset = true;
-  material.polygonOffsetFactor = 10;
-  material.polygonOffsetUnits = 1;
-  fills.push(viewer.filler.create(`${modelID}`, modelID, ids, material));
-};
 
 
 /* Load Model, 4D Data & Gantt Chart */
-const loadAllData = async (ifcURL) => {
+const init = async (ifcURL) => {
   await loadModel(ifcURL)
-  await loadScheduleData()
-  await loadGanttChart()
-  console.log("Data loaded")
+  await loadScheduleData(document.getElementById('GanttChartDIV'), 0)
+  await loadProjectTree()
 }
 
+let aggregation = {}
+
+
+const getIds = async (TreeDict) => {
+  for (let i = 0; i < TreeDict.length; i++) {
+    if (TreeDict[i].type =='IFCPROJECT' || TreeDict[i].type =='IFCBUILDING' || TreeDict[i].type =='IFCBUILDINGSTOREY'){
+      children = TreeDict[i].children
+      childrenList = []
+      for (let j = 0; j < children.length;j++ ){
+        childrenList.push(children[j].expressID)
+      }
+      aggregation[TreeDict[i].expressID] = {'type':TreeDict[i].type, 'children':childrenList}
+    }
+    await getIds(TreeDict[i].children)
+  }
+  return aggregation
+}
 
 /* Load Model */
 const loadModel = async (url) => {
   viewer.IFC.loader.ifcManager.parser.setupOptionalCategories({
-    [IFCSPACE]: false,
-    [IFCOPENINGELEMENT]: false
   });
   model = await viewer.IFC.loadIfcUrl(url, true);
+  await viewer.shadowDropper.renderShadow(0);
   file_id = model.modelID;
-  model.material.forEach(mat => mat.side = 2);
-  await createFill(model.modelID);
-  viewer.edges.create(`${model.modelID}`, model.modelID, lineMaterial, baseMaterial);
-  // viewer.edges.toggle(`${model.modelID}`);
-  await viewer.shadowDropper.renderShadow(model.modelID);
+
+  
+    animationControls = new AnimationControls()
+    animationControls.setIfcProductVisibilityTool(viewer.IFC.loader.ifcManager,model)
+
+
 };
 
+let ifcProject
+let allIds
 
-function loadGanttChart(){
-  var g = new JSGantt.GanttChart(document.getElementById('GanttChartDIV'), 'week');
+const loadProjectTree = async () => {
+  await loadIFCTreeData()
+  await setUpProjectBrowser()
+}
+
+async function setUpProjectBrowser(){
+  const projectBrowser = document.getElementById('myUL');
+  tree = new ProjectTree(viewer.IFC.loader.ifcManager, model)
+  await tree.load(projectBrowser, ifcProject.expressID, ifcProject.type, ifcProject.children)
+  let myBoxes = tree.getCheckBoxes()
+  for (let i = 0; i < myBoxes.length; i++){
+    myBoxes[i].onclick = loadBboxesFunctionality;
+  }
+}
+
+async function loadIFCTreeData(){
+  ifcProject = await viewer.IFC.getSpatialStructure(model.modelID);
+  allIds = await getIds([ifcProject])
+}
+
+function loadBboxesFunctionality() {
+ 
+  if (this.id != -1){
+    if( 
+      Object.keys(aggregation).includes(this.id) && aggregation[this.id].type == 'IFCBUILDINGSTOREY'){
+      if (this.checked){
+        tree.visibility.getCurrentVisibility("full-model-subset")
+        tree.visibility.addToSubSet(aggregation[Number(this.id)].children,"full-model-subset")
+        aggregation[Number(this.id)].children.forEach(item => 
+          document.getElementById(item.toString()).checked = true
+          )
+      } 
+      else {
+         tree.visibility.hideItems(aggregation[Number(this.id)].children,"full-model-subset")
+         aggregation[Number(this.id)].children.forEach(item => 
+          document.getElementById(item.toString()).checked = false
+          )
+      }
+    }
+    else {
+      if (this.checked){
+        tree.visibility.getCurrentVisibility("full-model-subset")
+        tree.visibility.addToSubSet([Number(this.id)],"full-model-subset")
+  
+      } 
+      else {
+         tree.visibility.hideItems([Number(this.id)],"full-model-subset")        
+      }
+    }
+
+  }
+}
+
+/* 4D Data Retrieval */
+const loadScheduleData = async (div, modelID) => {
+	animationSequenceFrame = new IFCAnimationDataFrame(ifc)
+	/* //FOR GANTT CHARTS */
+	//Retrieve All Tasks
+	await ifc.sequenceData.load(modelID)
+	let tasks = ifc.sequenceData.tasks
+
+	//Transform IFC Task Data to jsGantt-improved schema
+	let jsGanttData = new JSGanttTaskJson()
+	jsGanttJson = jsGanttData.getJsGanttTaskJson(tasks)
+	jsGanttInputData = JSON.stringify(jsGanttJson)
+
+	// Load Data into Gantt Chart
+	await setGanttChartDiv(div,JSON.stringify(jsGanttJson) )	
+	//FOR ANIMATIONS
+	animationSequenceFrame = await animationSequenceFrame.getAnimationSequencefromWorkSchedule(0)
+	lastTask = animationSequenceFrame[animationSequenceFrame.length-1];
+
+}
+
+const printDataExample = async () => {
+	//await viewer.IFC.loader.ifcManager.utils.byType(file_id,"IfcSlab")  
+};
+
+function setGanttChartDiv(div, tasksJSON){
+  var g = new JSGantt.GanttChart(div, 'week');
   g.setOptions({
       vCaptionType: 'Complete',  // Set to Show Caption : None,Caption,Resource,Duration,Complete,
       vQuarterColWidth: 36,
@@ -103,24 +179,13 @@ function loadGanttChart(){
       vUseToolTip: false, // Disable tooltips.
       vTotalHeight: 900,
   });
-  console.log(jsGanttJson)
-  JSGantt.parseJSONString(jsGanttJson, g);
-  console.log("Gantt Chart Loaded")
+  JSGantt.parseJSONString(tasksJSON, g);
   return g.Draw();
 };
-/* 4D Data Retrieval */
-const loadScheduleData = async () => {
-  ifc4D = new IFC4D(model.modelID, viewer.IFC.loader.ifcManager);
-  await ifc4D.loadScheduleData();
-  jsGanttJson = JSON.stringify(ifc4D.jsGanttJson)
-}
-
-
-
 
 
 // 3D Data
-async function writeQuantities(modelID,props,table){
+async function writeProductQuantities(modelID,props,table){
   for (let property_sets_index in props["psets"]){
       let property_sets = props["psets"][property_sets_index]
       if (property_sets["Quantities"]) {
@@ -141,7 +206,7 @@ async function writeQuantities(modelID,props,table){
   }
 };
 
-function writeProperties(props){
+function writeProductProperties(props){
   document.getElementById("Name").innerHTML = props["Name"]["value"];
   let description = props["Description"]
   if (description){
@@ -152,13 +217,13 @@ function writeProperties(props){
   document.getElementById("ObjectType").innerHTML = props["ObjectType"]["value"];
 }
 
-async function loadObjectData(result) {  
+async function loadProductData(result) {  
   const { modelID, id } = result;
   let props = await viewer.IFC.getProperties(modelID, id, true);
   var tableQuantities = document.getElementById("tableQuantities");
   clear_table(tableQuantities)
-  writeQuantities(modelID,props,tableQuantities)
-  writeProperties(props)
+  writeProductQuantities(modelID,props,tableQuantities)
+  writeProductProperties(props)
 };
 
 function clear_table(table){
@@ -170,37 +235,68 @@ function clear_table(table){
 
 
 
-
 // App buttons and functionnality
-const ganttWrapperDiv = document.getElementById("floatingDiv")
-ganttWrapperDiv.style.display = "none"
 const exampleButton = document.getElementById("load-test-example")
 const ganttButton = document.getElementById("display-gantt")
 const sectionButton = document.getElementById("display-sections")
-document.getElementById("viewer-container").style.cursor = "grab"
-const userInput = document.getElementById("file-input");
+const playSequence = document.getElementById("play-sequence")
+const cumulateSequence = document.getElementById("cumulative-sequence")
+const dateSequence = document.getElementById("date-sequence")
+const sequenceMenu = document.getElementById("sequenceMenu")
+const costingMenu = document.getElementById("costingMenu")
+const userFileInput = document.getElementById("file-input");
 
-userInput.addEventListener("change",
+
+/* 	//viewer.context.getScene().remove(model.mesh)
+  //visibility example !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  walls = await ifc.utils.byType(0,"IfcWall")
+  let wallIds = []
+  for (let i = 0; i <walls.length; i++) {
+    let wallID = walls[i].expressID
+    wallIds.push(wallID)
+  }
+  //tree.visibility.hideItems(wallIds,"full-model-subset")
+  console.log("Done my friend")  
+ */
+
+
+playSequence.onclick = async function(){
+	animationControls.autoAnimation(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+}
+
+cumulateSequence.onclick = async function(){
+	animationControls.CumulativeSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+}
+
+dateSequence.onclick = async function(){
+	animationControls.HighlightSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+}
+
+userFileInput.addEventListener("change",
   async (changed) => {
     if (isExampleFileLoaded){
-      return;
+		alert("A File is already loaded. Please refresh the page")
     }
     else{
       const file = changed.target.files[0];
       const ifcURL = URL.createObjectURL(file);
-      viewer.IFC.loadIfcUrl(ifcURL);
+	  init(ifcURL)
       isUserFileLoaded = true;
     }
   },
 );
 
 sectionButton.onclick = async function(){
-  viewer.toggleClippingPlanes()
+  viewer.clipper.toggle()
   if (viewer.clipper.active){
-    document.getElementById("viewer-container").style.cursor = "crosshair"
+	document.getElementById("viewer-container").classList.remove('moveRotateCursor')
+    document.getElementById("viewer-container").classList.add('sectionCursor')
+	sectionButton.innerHTML = "🔪 Hide"
   }
   else {
-    document.getElementById("viewer-container").style.cursor = "grab"
+	sectionButton.innerHTML = "🔪 Cut"
+	document.getElementById("viewer-container").classList.remove('sectionCursor')
+	document.getElementById("viewer-container").classList.add('moveRotateCursor')
   }
   
 }
@@ -209,9 +305,12 @@ exampleButton.onclick = async function (){
   if (isUserFileLoaded){
     alert("A File is already loaded. Please refresh the page and click on `load example` ")
   }
+  else if (isExampleFileLoaded){
+	alert("A File is already loaded. Please refresh the page and click on `load example` ")
+  }
   else {
-    let ifcURL = "./Model/MAD_SCIENTIST_212.ifc";
-    await loadAllData(ifcURL)
+    let ifcURL = "./Model/programme.ifc";
+    await init(ifcURL)
     isExampleFileLoaded = true;
   }
 }
@@ -221,13 +320,15 @@ ganttButton.onclick = async function (){
   }
 
 }
-
 const handleKeyDown = async (event) => {
   if (event.code === 'Delete') {
-    viewer.removeClippingPlane();
+    viewer.clipper.deletePlane();
     viewer.dimensions.delete();
   }
   if (event.code === 'Escape') {
+    viewer.IFC.selector.unpickIfcItems();
+  }
+  if (event.code === 'keyP') {
     viewer.IFC.selector.unpickIfcItems();
   }
 
@@ -240,6 +341,23 @@ window.ondblclick = async () => {
   } else {
     const result = await viewer.IFC.selector.pickIfcItem(true);
     if (!result) return;
-    loadObjectData(result);
+    loadProductData(result);
   }
 };
+
+//Make the DIV element draggagle:
+new FloatingPanel(document.getElementById("floatingDiv"),document.getElementById("floatingDivHeader"))
+new FloatingPanel(document.getElementById("productMenu"),document.getElementById("objectIconHeader"))
+
+sequenceMenu.onclick = async function (){
+	new SlidingMenus("sequenceMenu", "arrow")
+}
+costingMenu.onclick = async function (){
+	new SlidingMenus("costingMenu", "arrow_2")
+}
+
+/* CURSORS */
+document.getElementById("viewer-container").classList.add('moveRotateCursor')
+document.getElementById("arrow").classList.add('moveSideCursor')
+document.getElementById("arrow_2").classList.add('moveSideCursor')
+document.getElementById("objectIconHeader").classList.add('moveCursor')
