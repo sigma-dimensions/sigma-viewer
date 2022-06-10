@@ -67,23 +67,12 @@ class ProjectTree {
         checkBox.checked = "checked"
         checkBox.id = expressID.toString()
         this.checkboxes.push(checkBox);
-       /*  checkBox.onclick = this.myFunction(checkBox) */
-/*         async function(){
-            if (checkBox.checked){
-                console.log(checkBox.id)
-                this.myFunction(checkBox)
-            }
-            else if (!checkBox.checked) {
-                this.myFunction(checkBox)
-                console.log("WE UNCHECKED:", checkBox.id)
-            }
-        } */
-        checkBox.classList.add('checkbox');
         const checkmark = document.createElement('span');
+        checkmark.classList.add('checkmark')
         checkmark.classList.add('checkmark');
         titleCheckbox.appendChild(checkBox);
         titleCheckbox.appendChild(checkmark);
-        nodeContainer.appendChild(titleCheckbox);
+        title.appendChild(titleCheckbox);
         
         // children
         const childrenContainer = document.createElement('ul');
@@ -96,41 +85,34 @@ class ProjectTree {
     }
     
     async createLeafNode(parent, expressID, text, name) {
-        const leaf = document.createElement('li');
-        leaf.textContent = `${text} (${name})`
+        const leaf = document.createElement('div');
+        const texto = document.createElement('span');
         leaf.classList.add('leaf');
+        leaf.appendChild(texto)
+
+        texto.textContent = `${text} (${name})`
+        
         // checkbox
 
         const titleCheckbox = document.createElement('label');
-        titleCheckbox.classList.add('checkboxContainer');
         const checkBox = document.createElement('input');
+        const checkmark = document.createElement('span');
+        titleCheckbox.appendChild(checkBox);
+        titleCheckbox.appendChild(checkmark);
+
+        titleCheckbox.classList.add('checkboxContainer');
+        checkBox.classList.add('checkbox');
+        checkmark.classList.add('checkmark');
+
+
         checkBox.name = "tree-box"
         checkBox.type ="checkbox"
         checkBox.checked = true
         checkBox.id = expressID.toString()
         this.checkboxes.push(checkBox);
-        checkBox.classList.add('checkbox');
-
-/*         checkBox.onclick = async function(){
-            if (checkBox.checked){
-                console.log(checkBox.id)
-            }
-            else if (!checkBox.checked) {
-                console.log("WE UNCHECKED:", checkBox.id)
-            }
-        } 
-*/
-
-
-        const checkmark = document.createElement('span');
-        checkmark.classList.add('checkmark');
-        titleCheckbox.appendChild(leaf);
-        titleCheckbox.appendChild(checkBox);
-        titleCheckbox.appendChild(checkmark);
-
         
-
-        parent.appendChild(titleCheckbox);
+        leaf.appendChild(titleCheckbox)
+        parent.appendChild(leaf);
 
     }
     

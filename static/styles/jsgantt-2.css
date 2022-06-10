@@ -850,6 +850,7 @@ td.gspanning div {
   overflow: hidden;
   flex: 1 0 auto;
   resize: horizontal;
+  width: 35%
 }
 
 .gtasktableh tr,
@@ -881,6 +882,8 @@ td.gspanning div {
 /* Printer friendly styles - we could use these all the time but they are not as pretty! */
 
 /* note that "@media print" is not supported in IE6 or 7.  Fully patched IE8 should be OK */
+
+
 
 @media print {
   .ggroupblack {

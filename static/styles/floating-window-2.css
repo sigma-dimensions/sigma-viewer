@@ -1,25 +1,45 @@
 
 /* Test new Floating Tab */
 #floatingDiv {
-  display: block;
-  box-sizing: border-box;
+  width: 100%;
+  height: 40%;
   position: absolute;
-  z-index: 9;
+  z-index: 5;
   background-color: #f1f1f1;
   text-align: center;
   border: 1px solid #d3d3d3;
+  border-radius: 1rem;
   overflow: scroll;
-  width: 50%;
-  height: 30%;
-  height: 40%;
+  bottom: 0;
   resize: both;
   padding:0;
   margin: 0;
   }
   
+  .leftCross {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0.5rem;
+    margin: 0.5rem;
+    border: 1px solid #d3d3d3;
+    border-radius: 1rem;
+    /* width: 100%;
+    height: 100%;
+    z-index: 9;
+    background-color: #f1f1f1;
+    text-align: center;
+    border: 1px solid #d3d3d3;
+    overflow: scroll;
+    width: 50%;
+    height: 30%;
+    height: 40%;
+    resize: both;
+    padding:0;
+    margin: 0; */
+  }
   #floatingDivHeader {
     padding: 10px;
     cursor: move;
-    background-color: #949349;
-    color: #fff;
+    color: rgb(0, 0, 0);
   }

@@ -11,114 +11,74 @@
 </head>
 <body>
     <main>
-        <section class="glass"> 
-            <div class="left_column" id="leftColumn">
-              <div class="center_content">
-                <a href="https://www.sigmadimensions.com">
-                  <object class="profile_picture" style="position: in-line;" type="image/svg+xml" data="./static/images/sigma_logo_viewer.svg"></object>
-                </a>
-              <br>
-              <input type="file" id="file-input">
-              <br>
-              <h3>No File? Click on "Load Test Model" ! </h3>
-              <a id ="load-test-example" class="button4" style="background-color:#a79e1cef; width:50%; padding:10px; margin:10px;">Load Test Model</a>
-              </div>
-              <h3 class="center_content">Project Browser</h3>
-              <div class="tree-menu">
-                <ul id="myUL"></ul>
-              </div>
-            </div>
-                  <div class="right_column center_content">
-                      <div id="sequenceMenu" class="hideIT">
-                        <img id="arrow" class="icon" src="./static/images/icons/calendar.svg">
-                        <div id="deco">
-                          <h3 style="font-weight: bold; color: #2b2915ef">📆 Sequencing Toolkit </h3>
-                          <a id ="display-gantt" class="button4" style="background-color:#2b2915ef">📆 Show Gantt Chart</a>
-                          <a id ="play-sequence" class="button4" style="background-color:#2b2915ef"> 📽 Play Sequence</a>
-                          <a id ="cumulative-sequence" class="button4" style="background-color:#2b2915ef">▶️ Manual Sequence</a>
-                          <a id ="date-sequence" class="button4" style="background-color:#2b2915ef">📸 Date Visualiser</a>
-                          <h2 style="font-weight: bold; color: #2b2915ef">👷🏽 Resources Toolkit </h2>
-                          <h3>🔥Coming Soon!</h3>
-                        </div>
-                      </div>
-                      <div id="costingMenu" class="hideIT">
-                        <img id="arrow_2" class="icon" src="./static/images/icons/money.svg">
-                        <div id="links">
-                            <div id="deco">
-                              <h2 style="font-weight: bold; color: #2b2915ef">📆 5D Toolkit </h2>
-                              <a id ="display-gantt" class="button4" style="background-color:#2b2915ef">📆 Show Cost Schedule</a>
-                            </div>
-                        </div>
-                      </div>  
-                      <div id="productMenu" class="hideIT">
-                        <img id="objectIconHeader" class="icon" src="./static/images/icons/product.svg">
-                        <div id="deco">
-                          <h4>Object Attributes</h4>
-                          <table class="styled-table">
-                            <thead>
-                                <th>Attribute</th>
-                                <th class="ellipsis">Value</th>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td>Global ID</td>
-                                <td class="ellipsis" id="GlobalID">(No Type)</td>
-                              </tr>
-                              <tr>
-                                <td>Name</td>
-                                <td class="ellipsis" id="Name">(No Name)</td>
-                              </tr>
-                              <tr>
-                                <td>Description</td>
-                                <td class="ellipsis" id="Description">(No Description)</td>
-                              </tr>
-                              <tr>
-                                <td>Predefined Type</td>
-                                <td class="ellipsis" id="PredefinedType">(No Type)</td>
-                              </tr>
-                              <tr>
-                                <td>Object Type</td>
-                                <td class="ellipsis" id="ObjectType">(No Type)</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                          <h4>Object Quantities</h4>
-                          <table class="styled-table">
-                            <thead>
-                              <tr>
-                                <th>Quantity</th>
-                                <th class="ellipsis">Value</th>
-                              </tr>
-                            </thead>
-                            <tbody id="tableQuantities">
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+        <section>
+          <div id="mainContainer">
+            <div class="mainApp"> 
 
-                      <div class= "" id="viewer-container"></div>
-                      <div class="sequence_tools">
-                          <div class="slidecontainer">
-                            <h3 style="color:black">Sequence Slider:</h3>
-                            <input type="range" class="slider" id="myRange">  
-                          </div>
-                      </div>
-                      <!-- <div class="costing_tools">
-                        <h2 style="font-weight: bold; color: #2b2915ef">💰 5D Toolkit</h2>
-                        <a id ="display-gantt" class="button4" style="background-color:#2b2915ef">📆 Show Cost Schedule</a>
-                    </div> -->
-                      <div class="date_tools">
-                        <a id ="display-sections" class="buttonSmall">🔪 Cut</a>
-                        <!-- <a id ="load-test-example" class="buttonSmall" >PLAN</a> -->
-                        <p id="date-output"></p>
-                        <p id="task-output"></p>
+              <a href="http://sigmadimensions.com" target="_blank">
+              <div id="icon" class="iconMove">
+                <div class="svg-wrapper-1">
+                  <div class="svg-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                      <path fill="none" d="M0 0h24v24H0z"></path>
+                      <path fill="currentColor" d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"></path>
+                    </svg>
+                  </div>
+                </div>
+                  <span> By Sigma Dimensions</span>
+              </div>
+            </a>
+              <div class="stackRows">
+                <div class="left_column" id="leftColumn">
+                  <h3 class="center_content">Project Browser</h3>
+    
+                  <div class="tree-menu">
+                    <ul id="myUL"></ul>
+                  </div>
+                </div>
+                <div class="right_column">
+                  <div id="AppBar" class="header">
+                    <input type="file" id="file-input" accept=".ifc">
+                    <label id="file-input-label" for="file-input" class="moveIt button">
+                      Load File
+                    </label>
+                    <!-- <a id ="display-sections" class="buttonSmall">🔪 Cut</a> -->
+                    <button id ="load-test-example" class="moveIt button button"><span>Load Example</span></button>
+
+                  </div>
+                  <div id="floatingDiv" class="center_content" style="display:none">
+                    <div id="floatingDivHeader">
+                      <span id="ganttLeftCross" class="leftCross">Close</span>
+                      <h2>Construction Schedule</h2>
                     </div>
+                    <div id="floatingDivContent">                    
+                      <p id="date-output"></p>
+                      <p id="task-output"></p></div>
+                    <div class="gantt_div" id="GanttChartDIV">Uh Oh! It seems you do not have 4D Data! Go to BlenderBIM or Synchro and come back!</div>
+                  </div>
+                  <div class= "" id="viewer-container"></div>
+                  <div id="sequenceMenu" class="hideIT">
+                    <img id="arrow" class="icon" src="./static/images/icons/calendar.svg">
+                    <div id="deco">
+                      <button id ="display-gantt" class="button" style="vertical-align:middle"><span id="ganttChartText">📆 Show Gantt</span></button>
+                      <button id ="play-sequence" class="button" style="vertical-align:middle"><span>📽 Play Sequence</span></button>
+                      <button id ="cumulative-sequence" class="button" style="vertical-align:middle"><span>▶️ Manual Sequence</span></button>
+                      <button id ="date-sequence" class="button" style="vertical-align:middle"><span>📸 Date Visualiser</span></button>
+                    </div>
+                  </div>
+                  <div class="sequence_tools">
+                      <div class="slidecontainer">
+                        <h3>Construction Animation Slider:</h3>
+                        <input type="range" class="slider" id="myRange">  
+                      </div>
+                  </div>
+                </div>
+              </div>
 
-              </div>
-              <div id="floatingDiv" class="center_content">
-                <div id="floatingDivHeader">Construction Schedule</div>
-                <div class="gantt_div" id="GanttChartDIV"></div>
-              </div>
+
+          </div>  
+          </div>
+
         </section>
 
     </main>

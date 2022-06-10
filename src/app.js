@@ -1,11 +1,3 @@
-import { 
-	Mesh, 
-	MeshBasicMaterial, 
-	LineBasicMaterial, 
-	Color, 
-	EdgesGeometry, 
-	MeshLambertMaterial,
-} from 'three';
 import { IfcViewerAPI } from 'web-ifc-viewer'
 import {IFCAnimationDataFrame} from './components/IFC2AnimationDataFrame'
 import {JSGanttTaskJson} from "./sequence/JSGanttTaskJson";
@@ -28,15 +20,16 @@ ganttWrapperDiv.style.display = "none"
 
 let container = document.getElementById('viewer-container')
 let viewer = new IfcViewerAPI({ container })
+viewer.axes.setAxes()
+
+viewer.grid.setGrid(50,50)
+
 const ifc = viewer.IFC.loader.ifcManager;
 
 viewer.IFC.setWasmPath("../static/wasm/")
 
-//CAMERA - FOR TOGGLING FPS - TO DO
-//const camera = viewer.IFC.context.ifcCamera;
-
 //WEBWORKERS - to do
-//viewer.IFC.loader.ifcManager.useWebWorkers(true, '../static/web-workers/IFCWorker.js')
+// viewer.IFC.loader.ifcManager.useWebWorkers(true, './static/web-workers/IFCWorker.js')
 
 
 
@@ -65,19 +58,32 @@ const getIds = async (TreeDict) => {
   return aggregation
 }
 
+getLowestYCoordinate = (modelID) => {
+  const mesh = viewer.context.items.ifcModels[modelID];
+  const indices = mesh.geometry.index;
+  const position = mesh.geometry.attributes.position;
+  let minPosition = Number.MAX_VALUE;
+  for (let i = 0; i <= indices.count; i++) {
+      const current = position.getY(indices.array[i]);
+      if (current < minPosition)
+          minPosition = current;
+  }
+  return (minPosition+0.1);
+};
+
 /* Load Model */
 const loadModel = async (url) => {
-  viewer.IFC.loader.ifcManager.parser.setupOptionalCategories({
-  });
-  model = await viewer.IFC.loadIfcUrl(url, true);
-  await viewer.shadowDropper.renderShadow(0);
-  file_id = model.modelID;
-
-  
-    animationControls = new AnimationControls()
-    animationControls.setIfcProductVisibilityTool(viewer.IFC.loader.ifcManager,model)
-
-
+  if (viewer){
+    viewer.IFC.loader.ifcManager.parser.setupOptionalCategories({
+    });
+    model = await viewer.IFC.loadIfcUrl(url, true);
+    await viewer.shadowDropper.renderShadow(0);
+    file_id = model.modelID;
+    const positionMin = getLowestYCoordinate(file_id);
+    viewer.grid.grid.position.setY(positionMin)
+    viewer.axes.axes.position.setY(positionMin)
+    
+  }
 };
 
 let ifcProject
@@ -136,26 +142,40 @@ function loadBboxesFunctionality() {
   }
 }
 
+
+// Create a draggable div
+let isScheduleLoaded
+
+
+const loadAnimationControls = () => {
+  animationControls = new AnimationControls()
+  animationControls.setIfcProductVisibilityTool(viewer.IFC.loader.ifcManager,model)
+  animationSequenceFrame = new IFCAnimationDataFrame(ifc)
+}
 /* 4D Data Retrieval */
 const loadScheduleData = async (div, modelID) => {
-	animationSequenceFrame = new IFCAnimationDataFrame(ifc)
 	/* //FOR GANTT CHARTS */
 	//Retrieve All Tasks
 	await ifc.sequenceData.load(modelID)
 	let tasks = ifc.sequenceData.tasks
-
+  if (tasks) {
 	//Transform IFC Task Data to jsGantt-improved schema
 	let jsGanttData = new JSGanttTaskJson()
 	jsGanttJson = jsGanttData.getJsGanttTaskJson(tasks)
-	jsGanttInputData = JSON.stringify(jsGanttJson)
+  if (jsGanttJson.length >0){
+    loadAnimationControls()
+    jsGanttInputData = JSON.stringify(jsGanttJson)
 
-	// Load Data into Gantt Chart
-	await setGanttChartDiv(div,JSON.stringify(jsGanttJson) )	
-	//FOR ANIMATIONS
-	animationSequenceFrame = await animationSequenceFrame.getAnimationSequencefromWorkSchedule(0)
-	lastTask = animationSequenceFrame[animationSequenceFrame.length-1];
-
+    // Load Data into Gantt Chart
+    await setGanttChartDiv(div,JSON.stringify(jsGanttJson) )	
+    //FOR ANIMATIONS
+    animationSequenceFrame = await animationSequenceFrame.getAnimationSequencefromWorkSchedule(0)
+    lastTask = animationSequenceFrame[animationSequenceFrame.length-1];
+    isScheduleLoaded = true
+  }
+  }
 }
+
 
 const printDataExample = async () => {
 	//await viewer.IFC.loader.ifcManager.utils.byType(file_id,"IfcSlab")  
@@ -238,68 +258,52 @@ function clear_table(table){
 // App buttons and functionnality
 const exampleButton = document.getElementById("load-test-example")
 const ganttButton = document.getElementById("display-gantt")
-const sectionButton = document.getElementById("display-sections")
+
+document.getElementById("ganttLeftCross").onclick = () => {
+  toggleGantt()
+}
+// const sectionButton = document.getElementById("display-sections")
 const playSequence = document.getElementById("play-sequence")
 const cumulateSequence = document.getElementById("cumulative-sequence")
 const dateSequence = document.getElementById("date-sequence")
 const sequenceMenu = document.getElementById("sequenceMenu")
-const costingMenu = document.getElementById("costingMenu")
+// const costingMenu = document.getElementById("costingMenu")
 const userFileInput = document.getElementById("file-input");
 
-
-/* 	//viewer.context.getScene().remove(model.mesh)
-  //visibility example !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  walls = await ifc.utils.byType(0,"IfcWall")
-  let wallIds = []
-  for (let i = 0; i <walls.length; i++) {
-    let wallID = walls[i].expressID
-    wallIds.push(wallID)
-  }
-  //tree.visibility.hideItems(wallIds,"full-model-subset")
-  console.log("Done my friend")  
- */
-
-
 playSequence.onclick = async function(){
-	animationControls.autoAnimation(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  if (isScheduleLoaded){
+    animationControls.autoAnimation(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  }
+	
 }
 
 cumulateSequence.onclick = async function(){
-	animationControls.CumulativeSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  if (isScheduleLoaded){
+	  animationControls.CumulativeSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  }
 }
 
 dateSequence.onclick = async function(){
-	animationControls.HighlightSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  if (isScheduleLoaded){
+	  animationControls.HighlightSliderControl(document.getElementById('myRange'),document.getElementById('date-output'), animationSequenceFrame)
+  }
 }
 
 userFileInput.addEventListener("change",
   async (changed) => {
     if (isExampleFileLoaded){
-		alert("A File is already loaded. Please refresh the page")
+		alert("A File is already loaded. Refresh the page to view a new file")
     }
     else{
       const file = changed.target.files[0];
       const ifcURL = URL.createObjectURL(file);
-	  init(ifcURL)
+	    init(ifcURL)
       isUserFileLoaded = true;
+      document.getElementById("file-input-label").style.display = "none";
+      document.getElementById('AppBar').style.display = "none"
     }
   },
 );
-
-sectionButton.onclick = async function(){
-  viewer.clipper.toggle()
-  if (viewer.clipper.active){
-	document.getElementById("viewer-container").classList.remove('moveRotateCursor')
-    document.getElementById("viewer-container").classList.add('sectionCursor')
-	sectionButton.innerHTML = "🔪 Hide"
-  }
-  else {
-	sectionButton.innerHTML = "🔪 Cut"
-	document.getElementById("viewer-container").classList.remove('sectionCursor')
-	document.getElementById("viewer-container").classList.add('moveRotateCursor')
-  }
-  
-}
 
 exampleButton.onclick = async function (){
   if (isUserFileLoaded){
@@ -312,14 +316,31 @@ exampleButton.onclick = async function (){
     let ifcURL = "./Model/programme.ifc";
     await init(ifcURL)
     isExampleFileLoaded = true;
-  }
-}
-ganttButton.onclick = async function (){
-  if (ganttWrapperDiv.style.display == "none"){
-    ganttWrapperDiv.style.display = "block"
+    document.getElementById("file-input-label").style.display = "none";
+    document.getElementById('AppBar').style.display = "none"
   }
 
 }
+const isGanttShown = false;
+
+toggleGantt = () => {
+  if (ganttWrapperDiv){
+    if (ganttWrapperDiv.style.display == "none"){
+      ganttWrapperDiv.style.display = "block"
+      document.getElementById("ganttChartText").textContent = '📆 Hide Gantt'
+    }
+    else {
+      ganttWrapperDiv.style.display = "none"
+      document.getElementById("ganttChartText").textContent = '📆 Show Gantt'
+    }
+  }
+}
+
+ganttButton.onclick = async function (){
+  if (isScheduleLoaded){
+    toggleGantt()
+  }
+  }
 const handleKeyDown = async (event) => {
   if (event.code === 'Delete') {
     viewer.clipper.deletePlane();
@@ -335,29 +356,30 @@ const handleKeyDown = async (event) => {
 }
 window.onkeydown = handleKeyDown;
 
-window.ondblclick = async () => {
-  if (viewer.clipper.active) {
-    viewer.clipper.createPlane();
-  } else {
-    const result = await viewer.IFC.selector.pickIfcItem(true);
-    if (!result) return;
-    loadProductData(result);
-  }
-};
+// window.ondblclick = async () => {
+//   if (viewer.clipper.active) {
+//     viewer.clipper.createPlane();
+//   } else {
+//     const result = await viewer.IFC.selector.pickIfcItem(true);
+//     if (!result) return;
+//     loadProductData(result);
+//   }
+// };
 
 //Make the DIV element draggagle:
 new FloatingPanel(document.getElementById("floatingDiv"),document.getElementById("floatingDivHeader"))
-new FloatingPanel(document.getElementById("productMenu"),document.getElementById("objectIconHeader"))
+// new FloatingPanel(document.getElementById("productMenu"),document.getElementById("objectIconHeader"))
 
 sequenceMenu.onclick = async function (){
 	new SlidingMenus("sequenceMenu", "arrow")
 }
-costingMenu.onclick = async function (){
-	new SlidingMenus("costingMenu", "arrow_2")
-}
+// costingMenu.onclick = async function (){
+// 	new SlidingMenus("costingMenu", "arrow_2")
+// }
 
 /* CURSORS */
-document.getElementById("viewer-container").classList.add('moveRotateCursor')
-document.getElementById("arrow").classList.add('moveSideCursor')
-document.getElementById("arrow_2").classList.add('moveSideCursor')
-document.getElementById("objectIconHeader").classList.add('moveCursor')
+container.classList.add('moveRotateCursor')
+document.getElementById("arrow").style.cursor = "pointer"
+document.getElementById("ganttLeftCross").style.cursor = "pointer"
+// document.getElementById("arrow_2").classList.add('moveSideCursor')
+// document.getElementById("objectIconHeader").classList.add('moveCursor')

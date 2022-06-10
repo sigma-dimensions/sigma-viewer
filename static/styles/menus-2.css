@@ -1,9 +1,6 @@
 .sequence_tools {
-    background-color: #a0993227;
     width: 100%;
-    left:0;
-    bottom:0;
-    color: rgb(0, 0, 0);
+    top:0;
     max-height: inherit;
     max-width: inherit;
     position: absolute;
@@ -33,19 +30,7 @@
     max-width: inherit;
     position: absolute;
   }
-  
-  .date_tools {
-    position: absolute;
-    background-color: #a0993227;
-    left:0;
-    right: 0;
-    top:0;
-    color: rgb(0, 0, 0);
-    color: #426696;
-    font-weight: 600;
-    font-size: 2rem;
-  }
-    
+ 
   
   #costingMenu{
     width: 15rem;
@@ -64,10 +49,10 @@
     width: 15rem;
     right: -140px;
     position:absolute;
-    z-index: 100;
+    z-index: 10;
     text-align: left;
     font-size: 0.8rem;
-    top: 7%; /* change this value to place the menu higher or lower */
+    top: 25%; /* change this value to place the menu higher or lower */
     display:flex;
 
   }
@@ -86,6 +71,9 @@
   }
 
   #deco{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     max-width: inherit;
     max-height:inherit;
     float: left;
@@ -94,6 +82,7 @@
     -webkit-box-shadow:0px 0px 5px rgb(72, 70, 24);
     overflow: hidden;
     resize:vertical;
+
   }
   
   .showIT, .hideIT{
